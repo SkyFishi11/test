@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>欠席連絡フォーム</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        input, textarea, button, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background: #46b914;
+            color: white;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #3a9f11;
+        }
+        .admin-list {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background: #46b914;
+            color: white;
+        }
+        .delete-btn {
+            background: red;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>欠席連絡フォーム</h2>
+        <form id="absenceForm">
+            <input type="text" name="name" placeholder="生徒の名前" required>
+            <select name="grade" required>
+                <option value="">学年を選択</option>
+                <option value="1年">1年</option>
+                <option value="2年">2年</option>
+                <option value="3年">3年</option>
+            </select>
+            <input type="date" name="date" id="date" required>
+            <input type="text" name="reason" placeholder="欠席理由" required>
+            <textarea name="details" placeholder="詳細（任意）"></textarea>
+            <button type="submit">送信</button>
+        </form>
+    </div>
+
+    <div class="admin-list">
+        <h2>欠席連絡一覧</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>名前</th>
+                    <th>学年</th>
+                    <th>日付</th>
+                    <th>理由</th>
+                    <th>詳細</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="absenceList">
+                <!-- 送信されたデータが追加される -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let today = new Date().toISOString().split("T")[0];
+            document.getElementById("date").value = today;
+            loadAbsences();
+        });
+
+        document.getElementById('absenceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            let name = this.name.value;
+            let grade = this.grade.value;
+            let date = this.date.value;
+            let reason = this.reason.value;
+            let details = this.details.value;
+            
+            let absenceData = { name, grade, date, reason, details };
+            saveAbsence(absenceData);
+            appendAbsenceRow(absenceData);
+            
+            this.reset();
+            document.getElementById("date").value = new Date().toISOString().split("T")[0];
+        });
+
+        function saveAbsence(absence) {
+            let absences = JSON.parse(localStorage.getItem("absences")) || [];
+            absences.push(absence);
+            localStorage.setItem("absences", JSON.stringify(absences));
+        }
+
+        function loadAbsences() {
+            let absences = JSON.parse(localStorage.getItem("absences")) || [];
+            absences.forEach((absence, index) => appendAbsenceRow(absence, index));
+        }
+
+        function appendAbsenceRow(absence, index) {
+            let row = document.createElement("tr");
+            row.innerHTML = `<td>${absence.name}</td><td>${absence.grade}</td><td>${absence.date}</td><td>${absence.reason}</td><td>${absence.details}</td>
+                             <td><button class="delete-btn" onclick="deleteAbsence(${index})">削除</button></td>`;
+            document.getElementById('absenceList').appendChild(row);
+        }
+
+        function deleteAbsence(index) {
+            let absences = JSON.parse(localStorage.getItem("absences")) || [];
+            absences.splice(index, 1);
+            localStorage.setItem("absences", JSON.stringify(absences));
+            document.getElementById("absenceList").innerHTML = "";
+            loadAbsences();
+        }
+    </script>
+</body>
+</html>
